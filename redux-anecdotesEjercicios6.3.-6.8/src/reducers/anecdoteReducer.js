@@ -1,3 +1,6 @@
+// src/reducers/anecdoteReducer.js
+import { createSlice } from '@reduxjs/toolkit'
+
 const anecdotesAtStart = [
   'If it hurts, do it more often',
   'Adding manpower to a late software project makes it later!',
@@ -9,55 +12,39 @@ const anecdotesAtStart = [
 
 const getId = () => (100000 * Math.random()).toFixed(0)
 
-const asObject = (anecdote) => {
-  return {
-    content: anecdote,
-    id: getId(),
-    votes: 0
-  }
-}
+const initialState = anecdotesAtStart.map(anecdote => ({
+  content: anecdote,
+  id: getId(),
+  votes: 0
+}))
 
-const initialState = anecdotesAtStart.map(asObject)
-
-export const voteAnecdote = (id) => {
-  return {
-    type: 'VOTE',
-    payload: id
-  }
-}
-
-export const createAnecdote = (content) => {
-  return {
-    type: 'NEW_ANECDOTE',
-    payload: {
-      content,
-      id: getId(),
-      votes: 0
-    }
-  }
-}
-
-const reducer = (state = initialState, action) => {
-  switch (action.type) {
-    case 'VOTE':
+const anecdoteSlice = createSlice({
+  name: 'anecdotes',
+  initialState,
+  reducers: {
+    voteAnecdote(state, action) {
       const id = action.payload
       const anecdoteToVote = state.find(anecdote => anecdote.id === id)
       if (!anecdoteToVote) return state // No hacer nada si no se encuentra la anécdota
-      const votedAnecdote = {
-        ...anecdoteToVote,
-        votes: anecdoteToVote.votes + 1
-      }
-      return state
-        .map(anecdote =>
-          anecdote.id !== id ? anecdote : votedAnecdote
-        )
-        .sort((a, b) => b.votes - a.votes)  // Ordenar por votos
-    case 'NEW_ANECDOTE':
-      return [...state, action.payload]
-        .sort((a, b) => b.votes - a.votes)  // Ordenar por votos
-    default:
-      return state
-  }
-}
 
-export default reducer
+      // Actualizar el estado de manera inmutable
+      return state.map(anecdote =>
+        anecdote.id !== id
+          ? anecdote
+          : { ...anecdote, votes: anecdote.votes + 1 }
+      ).sort((a, b) => b.votes - a.votes)  // Ordenar por votos
+    },
+    createAnecdote(state, action) {
+      const newAnecdote = {
+        content: action.payload,
+        id: getId(),
+        votes: 0
+      }
+      // Añadir nueva anécdota y ordenar el estado de manera inmutable
+      return [...state, newAnecdote].sort((a, b) => b.votes - a.votes)  // Ordenar por votos
+    }
+  }
+})
+
+export const { voteAnecdote, createAnecdote } = anecdoteSlice.actions
+export default anecdoteSlice.reducer
