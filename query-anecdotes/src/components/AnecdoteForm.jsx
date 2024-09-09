@@ -4,39 +4,18 @@ import { createAnecdote } from '../services/anecdoteService';
 import { useNotification } from '../contexts/NotificationContext';
 
 const AnecdoteForm = () => {
-  const { dispatch } = useNotification();
-  
-  // Configuración de useMutation con callbacks
+  const { showNotification } = useNotification();
   const mutation = useMutation({
     mutationFn: createAnecdote,
     onError: (error) => {
-      // Manejo de error: muestra una notificación de error
-      dispatch({
-        type: 'SHOW_NOTIFICATION',
-        payload: {
-          message: `Error adding anecdote: ${error.message}`,
-          type: 'error',
-        },
-      });
-      setTimeout(() => {
-        dispatch({ type: 'HIDE_NOTIFICATION' });
-      }, 5000);
+      showNotification(`Error adding anecdote: ${error.message}`, 'error');
+      // Limpiar el input en caso de error
+      clearInput();
     },
     onSuccess: (data) => {
-      // Manejo de éxito: muestra una notificación de éxito
-      dispatch({
-        type: 'SHOW_NOTIFICATION',
-        payload: {
-          message: `Anecdote added successfully: "${data.content}"`,
-          type: 'success',
-        },
-      });
-      setTimeout(() => {
-        dispatch({ type: 'HIDE_NOTIFICATION' });
-      }, 5000);
-    },
-    onSettled: () => {
-      // Opcional: acciones que se ejecutan sin importar el resultado
+      showNotification(`Anecdote added successfully: "${data.content}"`, 'success');
+      // Limpiar el input en caso de éxito
+      clearInput();
     },
   });
 
@@ -45,20 +24,18 @@ const AnecdoteForm = () => {
     const content = event.target.elements.content.value;
 
     if (content.length < 5) {
-      dispatch({
-        type: 'SHOW_NOTIFICATION',
-        payload: {
-          message: 'Anecdote must be at least 5 characters long.',
-          type: 'error',
-        },
-      });
-      setTimeout(() => {
-        dispatch({ type: 'HIDE_NOTIFICATION' });
-      }, 5000);
+      showNotification('Anecdote must be at least 5 characters long.', 'error');
+      // Limpiar el input en caso de error
+      clearInput();
       return;
     }
 
     mutation.mutate({ content, votes: 0 });
+  };
+
+  const clearInput = () => {
+    // Limpiar el input después de la sumisión
+    document.querySelector('input[name="content"]').value = '';
   };
 
   return (

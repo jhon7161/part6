@@ -1,16 +1,21 @@
-// components/VoteButton.js
 import React from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { updateAnecdote } from '../services/anecdoteService';
+import { useNotification } from '../contexts/NotificationContext';
 
 const VoteButton = ({ anecdote }) => {
   const queryClient = useQueryClient();
+  const { showNotification } = useNotification();
 
   const mutation = useMutation({
     mutationFn: (updatedAnecdote) => updateAnecdote(updatedAnecdote),
-    onSuccess: () => {
-      // Invalida y refetch las anécdotas cuando una anécdota es actualizada
+    onSuccess: (updatedAnecdote) => {
       queryClient.invalidateQueries(['anecdotes']);
+      showNotification(`Vote updated for: "${updatedAnecdote.content}"`, 'success');
+    },
+    onError: (error) => {
+      console.error('Error updating vote:', error);
+      showNotification('Error updating vote.', 'error');
     },
   });
 
