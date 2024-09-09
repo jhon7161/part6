@@ -2,22 +2,33 @@
 import React from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { getAnecdotes, updateAnecdote } from '../services/anecdoteService';
+import { useNotification } from '../contexts/NotificationContext';
 
 const AnecdoteList = () => {
   const queryClient = useQueryClient();
+  const { dispatch } = useNotification();
 
-  // Consulta para obtener las anécdotas
   const { data: anecdotes, isLoading, isError } = useQuery({
     queryKey: ['anecdotes'],
     queryFn: getAnecdotes,
   });
 
-  // Mutación para actualizar los votos de una anécdota
   const voteMutation = useMutation({
     mutationFn: updateAnecdote,
     onSuccess: () => {
-      queryClient.invalidateQueries(['anecdotes']); // Refresca la lista de anécdotas
+      queryClient.invalidateQueries(['anecdotes']);
+      dispatch({ type: 'SHOW_NOTIFICATION', payload: 'Vote updated successfully!' });
+      setTimeout(() => {
+        dispatch({ type: 'HIDE_NOTIFICATION' });
+      }, 5000);
     },
+    onError: (error) => {
+      console.error('Error updating vote:', error);
+      dispatch({ type: 'SHOW_NOTIFICATION', payload: 'Error updating vote.' });
+      setTimeout(() => {
+        dispatch({ type: 'HIDE_NOTIFICATION' });
+      }, 5000);
+    }
   });
 
   const handleVote = (anecdote) => {
