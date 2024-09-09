@@ -1,8 +1,10 @@
-// components/AnecdoteList.jsx
 import React from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { getAnecdotes, updateAnecdote } from '../services/anecdoteService';
 import { useNotification } from '../contexts/NotificationContext';
+
+const SHOW_NOTIFICATION = 'SHOW_NOTIFICATION';
+const HIDE_NOTIFICATION = 'HIDE_NOTIFICATION';
 
 const AnecdoteList = () => {
   const queryClient = useQueryClient();
@@ -15,18 +17,30 @@ const AnecdoteList = () => {
 
   const voteMutation = useMutation({
     mutationFn: updateAnecdote,
-    onSuccess: () => {
+    onSuccess: (updatedAnecdote) => {
       queryClient.invalidateQueries(['anecdotes']);
-      dispatch({ type: 'SHOW_NOTIFICATION', payload: 'Vote updated successfully!' });
+      dispatch({
+        type: SHOW_NOTIFICATION,
+        payload: {
+          message: `Vote updated for: "${updatedAnecdote.content}"`,
+          type: 'success', // Éxito
+        },
+      });
       setTimeout(() => {
-        dispatch({ type: 'HIDE_NOTIFICATION' });
+        dispatch({ type: HIDE_NOTIFICATION });
       }, 5000);
     },
     onError: (error) => {
       console.error('Error updating vote:', error);
-      dispatch({ type: 'SHOW_NOTIFICATION', payload: 'Error updating vote.' });
+      dispatch({
+        type: SHOW_NOTIFICATION,
+        payload: {
+          message: 'Error updating vote.',
+          type: 'error', // Error
+        },
+      });
       setTimeout(() => {
-        dispatch({ type: 'HIDE_NOTIFICATION' });
+        dispatch({ type: HIDE_NOTIFICATION });
       }, 5000);
     }
   });

@@ -1,4 +1,3 @@
-// contexts/NotificationContext.js
 import React, { createContext, useReducer, useContext } from 'react';
 
 // Acción de tipos
@@ -9,7 +8,12 @@ const HIDE_NOTIFICATION = 'HIDE_NOTIFICATION';
 const notificationReducer = (state, action) => {
   switch (action.type) {
     case SHOW_NOTIFICATION:
-      return { ...state, message: action.payload, visible: true };
+      return { 
+        ...state, 
+        message: action.payload.message, 
+        visible: true,
+        type: action.payload.type || 'success' // Agregar el tipo de notificación, por defecto 'success'
+      };
     case HIDE_NOTIFICATION:
       return { ...state, visible: false };
     default:
@@ -24,7 +28,8 @@ const NotificationContext = createContext();
 export const NotificationProvider = ({ children }) => {
   const [state, dispatch] = useReducer(notificationReducer, {
     message: '',
-    visible: false
+    visible: false,
+    type: 'success' // Tipo por defecto
   });
 
   return (
